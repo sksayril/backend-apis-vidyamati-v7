@@ -4,12 +4,24 @@ const User = require('../models/user.model');
 const AdminUser = require('../models/admin.user.model');
 
 // Basic authentication middleware to verify the token
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check if user exists and token version matches
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Check if token version matches (prevents old tokens from working)
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({ message: 'Token has been invalidated. Please login again.' });
+    }
+
     req.user = decoded;
     next();
   } catch (err) {

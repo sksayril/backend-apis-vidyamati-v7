@@ -12,9 +12,7 @@ var userRouter = require('./routes/user.routes');
 var chatRouter = require('./routes/chat.routes');
 
 var app = express();
-app.use(cors({
-    origin: '*', // This allows all origins
-  }));
+app.use(cors());
 
 app.use(logger('dev'));
 app.use(express.json({limit: '500mb'}));

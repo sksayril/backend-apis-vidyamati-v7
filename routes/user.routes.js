@@ -81,9 +81,17 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Create JWT token
+    // Increment token version to invalidate previous tokens
+    user.tokenVersion += 1;
+    await user.save();
+
+    // Create JWT token with token version
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { 
+        id: user._id, 
+        role: user.role, 
+        tokenVersion: user.tokenVersion 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '365d' }
     );
@@ -115,6 +123,28 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// User Logout - Invalidate current token
+router.post('/logout', authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Increment token version to invalidate current token
+    user.tokenVersion += 1;
+    await user.save();
+
+    res.status(200).json({ 
+      message: 'Logout successful. All tokens have been invalidated.' 
+    });
+  } catch (err) {
+    console.error('Logout error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

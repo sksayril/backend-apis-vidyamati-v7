@@ -12,6 +12,9 @@ const Sponsor = require("../models/Sponsor.model");
 // Import chat routes
 const chatRoutes = require('./chat.routes');
 
+// Import admin routes
+const adminRoutes = require('./admin.routes');
+
 // Import authentication middleware
 const { authenticate, requireSubscription, requireAdmin } = require('../middleware/auth');
 
@@ -643,5 +646,8 @@ router.post("/api/delete/sponser", requireAdmin, async (req, res) => {
 
 // Use chat routes
 router.use(chatRoutes);
+
+// Use admin routes
+router.use(adminRoutes);
 
 module.exports = router;
