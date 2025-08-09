@@ -9,6 +9,7 @@ const geminiService = require('../utilities/gemini');
 const memoryStorage = multer.memoryStorage();
 const upload = multer({ 
   storage: memoryStorage,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
   fileFilter: (req, file, cb) => {
     // Accept only images and PDFs
     if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
