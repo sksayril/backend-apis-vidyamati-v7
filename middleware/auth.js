@@ -11,18 +11,30 @@ const authenticate = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Check if user exists and token version matches
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+    // Check if admin user exists first
+    let user = await AdminUser.findById(decoded.id);
+    let isAdmin = false;
+    
+    if (user) {
+      // This is an admin user
+      isAdmin = true;
+      // Check if token version matches
+      if (decoded.tokenVersion !== user.tokenVersion) {
+        return res.status(401).json({ message: 'Token has been invalidated. Please login again.' });
+      }
+    } else {
+      // Check if regular user exists
+      user = await User.findById(decoded.id);
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      // Check if token version matches
+      if (decoded.tokenVersion !== user.tokenVersion) {
+        return res.status(401).json({ message: 'Token has been invalidated. Please login again.' });
+      }
     }
 
-    // Check if token version matches (prevents old tokens from working)
-    if (decoded.tokenVersion !== user.tokenVersion) {
-      return res.status(401).json({ message: 'Token has been invalidated. Please login again.' });
-    }
-
-    req.user = decoded;
+    req.user = { ...decoded, isAdmin };
     next();
   } catch (err) {
     res.status(401).json({ message: 'Invalid token' });
@@ -33,7 +45,12 @@ const authenticate = async (req, res, next) => {
 const requireSubscription = async (req, res, next) => {
   try {
     // First authenticate the user
-    authenticate(req, res, async () => {
+    await authenticate(req, res, async () => {
+      // Only regular users need subscription
+      if (req.user.isAdmin) {
+        return next();
+      }
+      
       // Find the user by ID
       const user = await User.findById(req.user.id);
       
@@ -63,11 +80,9 @@ const requireSubscription = async (req, res, next) => {
 const requireAdmin = async (req, res, next) => {
   try {
     // First authenticate the user
-    authenticate(req, res, async () => {
+    await authenticate(req, res, async () => {
       // Check if user is an admin
-      const adminUser = await AdminUser.findById(req.user.id);
-      
-      if (!adminUser) {
+      if (!req.user.isAdmin) {
         return res.status(403).json({ message: 'Admin access required' });
       }
       
