@@ -27,12 +27,18 @@ const userSchema = new mongoose.Schema({
   parentCategoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
-    required: [true, 'Parent category is required']
+    required: function() {
+      return this.role === 'user';
+    },
+    default: undefined
   },
   subCategoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
-    required: [true, 'Sub category is required']
+    required: function() {
+      return this.role === 'user';
+    },
+    default: undefined
   },
   subscription: {
     isSubscribed: {

@@ -3,7 +3,7 @@ const User = require('./models/user.model'); // RegularUser collection
 const AdminUser = require('./models/admin.user.model'); // User collection (for admins)
 
 // Connect to MongoDB
-mongoose.connect('mongodb://cripcocode:sksayril123@45.129.86.243:27017/adhyanguru?authSource=admin')
+mongoose.connect('mongodb+srv://admin:admin@cluster0.xqa99.mongodb.net/vidyabani?retryWrites=true&w=majority&appName=Cluster0')
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 

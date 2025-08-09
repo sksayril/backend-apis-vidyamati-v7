@@ -1,12 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const User = require('./models/user.model'); // Adjust path to your user model
+const User = require('./models/user.model');
 
 // Connect to MongoDB
-mongoose.connect('mongodb://cripcocode:sksayril123@45.129.86.243:27017/adhyanguru?authSource=admin', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect('mongodb+srv://admin:admin@cluster0.xqa99.mongodb.net/vidyabani?retryWrites=true&w=majority&appName=Cluster0')
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
@@ -22,27 +19,34 @@ async function createFirstAdmin() {
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('Sksayril123@', salt); // Replace with a strong password
+    const hashedPassword = await bcrypt.hash('Sksayril123@', salt);
 
     // Create admin user
     const admin = new User({
       name: 'Admin User',
       email: 'sksayril123@gmail.com',
       password: hashedPassword,
-      phone: '1234567891', // Optional
+      phone: '1234567891',
       role: 'admin',
       subscription: {
         isSubscribed: false,
         plan: 'none',
       },
+      // Note: parentCategoryId and subCategoryId are not required for admin users
     });
 
     await admin.save();
     console.log('First admin created successfully:', admin.email);
   } catch (err) {
     console.error('Error creating admin:', err);
+    if (err.errors) {
+      Object.keys(err.errors).forEach(key => {
+        console.error(`${key}: ${err.errors[key].message}`);
+      });
+    }
   } finally {
-    mongoose.connection.close(); // Close the connection
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed');
   }
 }
 
